@@ -16,10 +16,19 @@ export const SocketContextProvider = ({ children }) => {
   useEffect(() => {
     console.log(authUser)
     if(authUser) {
-      const socket = io("http://localhost:5000", {
+      // Use env var if set, otherwise use current page origin (for deployed apps)
+      const envUrl = import.meta.env.VITE_SOCKET_URL;
+      const pageOrigin = typeof window !== 'undefined' ? 
+        `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}` : 
+        'http://localhost:5000';
+      const socketUrl = envUrl || pageOrigin;
+      
+      const socket = io(socketUrl, {
         query:{
             userId: authUser._id
-        }
+        },
+        transports: ['websocket', 'polling'],
+        withCredentials: true,
       });
       setSocket(socket);
 
